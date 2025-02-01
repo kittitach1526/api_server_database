@@ -1,13 +1,50 @@
-from flask import Flask, jsonify, request,render_template
+from flask import Flask, jsonify, request,render_template,redirect,url_for
 from connect_database import Database
 import json
 
 app = Flask(__name__)
 database = Database() 
+isLogin = False
+userData = []
+railwayDatas = database.fetch_all_railway_types();
+stationDatas = database.fetch_all_stations();
 
 @app.route('/') # Home page
-def home():
-    return render_template('index.html')
+def home_page():
+    global userData
+    global railwayDatas
+    evaluations = database.fetch_all_evaluations()
+    if isLogin:
+        return render_template('home.html',user=userData,railways=railwayDatas,stations=stationDatas,evaluations=evaluations)
+    else:
+        return redirect(url_for("login_page"))
+    
+@app.route('/login', methods=['GET']) # login page
+def login_page():
+    if isLogin:
+        return redirect(url_for("home_page"))
+    else:
+        return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    global isLogin,userData
+    email = request.form.get('email')
+    password = request.form.get('password')
+    data = database.fetch_account(email, password)
+    if data!=[]:
+        isLogin = True
+        userData = data[0]
+        return redirect(url_for("home_page"))
+    else:
+        return render_template('login.html',msg="Login Fail.")
+    
+@app.route('/logout')
+def logout():
+    isLogin = False
+    userData = []
+    return render_template('login.html')
+    
 
 #------------------------------------GET------------------------------------#
 
@@ -22,12 +59,33 @@ def get_railway():
     except Exception as e:
         # คืนค่า JSON response เมื่อเกิดข้อผิดพลาด
         return jsonify({"status": "error", "message": str(e)})
+    
+@app.route('/api/railway/<id>', methods=['GET'])
+def get_railway_by_id(id):
+    # สร้างออบเจกต์ฐานข้อมูล
+    try:
+        # ดึงข้อมูลทั้งหมดจาก tb_railway_type
+        result = database.fetch_railway_types_by_id(id)  # `result` เป็น list ของ dictionary อยู่แล้ว
+        # คืนค่า JSON response โดยตรง
+        return jsonify({"status": "success", "data": result})
+    except Exception as e:
+        # คืนค่า JSON response เมื่อเกิดข้อผิดพลาด
+        return jsonify({"status": "error", "message": str(e)})
 
 
 @app.route('/api/station/all', methods=['GET'])
 def get_station():
     try:
         result = database.fetch_all_stations()
+        return jsonify({"status": "success", "data": result})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+    
+@app.route('/api/station/railway/<id>', methods=['GET'])
+def get_station_by_railway(id):
+    try:
+        print("id:"+id)
+        result = database.fetch__stations_by_railway(id)
         return jsonify({"status": "success", "data": result})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})

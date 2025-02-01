@@ -1,7 +1,8 @@
 import sqlite3
+import hashlib
 
 class Database:
-    def __init__(self, db_path=r"D:/server_app_project/railway.db"):
+    def __init__(self, db_path=r"railway.db"):
         self.database = db_path
 
     def get_connection(self):
@@ -24,10 +25,35 @@ class Database:
         except sqlite3.Error as e:
             print(f"Database error: {e}")
             return []
+    def fetch_railway_types_by_id(self,id):
+        """Fetch all records from tb_railway_type."""
+        sql = '''SELECT * FROM tb_railway_type WHERE id_railway_type = '''+id
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql)
+                rows = cursor.fetchall()
+                return [{"id_railway_type": row[0], "railway_type": row[1]} for row in rows]
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            return []
 
     def fetch_all_stations(self):
         """Fetch all records from tb_station."""
         sql = '''SELECT * FROM tb_station'''
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql)
+                rows = cursor.fetchall()
+                return [{"id_station": row[0], "station_name": row[1], "id_railway_type": row[2]} for row in rows]
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            return []
+    def fetch__stations_by_railway(self,id):
+        """Fetch all records from tb_station."""
+        sql = '''SELECT * FROM tb_station WHERE id_railway_type = '''+id
+        print(sql)
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
@@ -64,6 +90,27 @@ class Database:
     def fetch_all_accounts(self):
         """Fetch all records from tb_account."""
         sql = '''SELECT * FROM tb_account'''
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql)
+                rows = cursor.fetchall()
+                return [{
+                    "id_account": row[0],
+                    "email": row[1],
+                    "username": row[2],
+                    "password": row[3],
+                    "firstname": row[4],
+                    "lastname": row[5]
+                } for row in rows]
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            return []
+    
+    def fetch_account(self,email,password):
+        """Fetch all records from tb_account."""
+        hashpassword = hashlib.sha256(password.encode()).hexdigest()
+        sql = '''SELECT * FROM tb_account WHERE email = "'''+email+'''" AND password = "'''+password+'''"'''
         try:
             with self.get_connection() as conn:
                 cursor = conn.cursor()
@@ -138,10 +185,11 @@ class Database:
 
     def insert_account(self, email, username, password, firstname, lastname):
         """Insert a new record into tb_account."""
+        hashpassword = hashlib.sha256(password.encode()).hexdigest()
         sql = '''INSERT INTO tb_account(email, username, password, firstname, lastname) VALUES(?, ?, ?, ?, ?)'''
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute(sql, (email, username, password, firstname, lastname))
+            cursor.execute(sql, (email, username, hashpassword, firstname, lastname))
             conn.commit()
             return cursor.lastrowid
 

@@ -1,0 +1,35 @@
+{% extends "index.html" %}
+
+{% block content %}
+<nav class="navbar shadow-box nav">
+     <div class="container-fluid">
+         <a class="navbar-brand">
+             <img class="logo" src="/static/images/logo.png" alt="">
+         </a>
+     </div>
+ </nav>
+<section style="height: 70vh;" class="container my-5 ">
+     <div class="d-flex justify-content-center align-items-center h-100 content">
+         <div class="login-box">
+             <div class="title">
+                 Login
+             </div>
+             <hr  class="border border-primary border-2 opacity-75">
+             <form style="width: 500px;" action="/login" method="POST">
+                 <div class="mb-3">
+                     <label for="email" class="form-label">Email</label>
+                     <input type="email" class="form-control" id="email" name="email" required>
+                 </div>
+                 <div class="mb-4">
+                     <label for="password" class="form-label">Password</label>
+                     <input type="password" class="form-control" id="password" name="password" required>
+                 </div>
+                 <button type="submit" class="btn btn-primary w-100 my-3">login</button>
+                 {% if msg %}
+                    <div class="alert alert-danger" role="alert">{{ msg }}</div>
+                 {% endif %}
+             </form>
+         </div>
+     </div>
+ </section>
+ {% endblock %}
