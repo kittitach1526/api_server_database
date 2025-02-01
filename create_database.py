@@ -66,7 +66,7 @@ def create_tables(conn):
         print(f"Error creating tables: {e}")
 
 def main():
-    database = r"D:/server_app_project/railway.db"
+    database = r"D:/RMUTT/_Project/code/_wab/api_server_database/railway.db"
 
     # Create a database connection
     conn = create_connection(database)
